@@ -42,8 +42,9 @@ SELECT * FROM Models ORDER BY name LIMIT 11 OFFSET 14;
 --    (The year the brand was founded should be ``null`` if 
 --    the brand is not in the Brands table.)
 
-SELECT b.name, m.name, b.founded 
+SELECT m.brand_name, m.name, b.founded 
 FROM Models AS m LEFT JOIN Brands AS b
+ON b.name = m.brand_name
 WHERE m.year = '1960';
 
 
@@ -62,6 +63,14 @@ WHERE m.year = '1960';
     --     ON b.name = m.brand_name
     -- WHERE b.discontinued IS NULL;
 
+-- after:
+    SELECT b.name, b.founded, m.name
+    FROM Brands AS b
+      LEFT JOIN Models AS m
+        ON b.name = m.brand_name
+    WHERE b.discontinued IS NULL
+    GROUP BY b.name;
+
 -- 2. Modify this left join so it only selects models that have brands in the Brands table.
 -- before: 
     -- SELECT m.name,
@@ -71,8 +80,20 @@ WHERE m.year = '1960';
     --   LEFT JOIN Brands AS b
     --     ON b.name = m.brand_name;
 
+-- after:
+    SELECT m.name,
+           m.brand_name,
+           b.founded
+    FROM Models AS m
+      JOIN Brands AS b
+        ON b.name = m.brand_name;
+
 -- followup question: In your own words, describe the difference between 
 -- left joins and inner joins.
+    -- If some of the selected values are NULL in one (or both) of the tables, 
+    -- that row will be left out in an inner join. With a left join, if the 
+    -- "left" table (the first one in the FROM clause) contains NULL values,
+    -- those rows will still be included in the result.
 
 -- 3. Modify the query so that it only selects brands that don't have any car models in the cars table. 
 -- (Hint: it should only show Tesla's row.)
@@ -83,6 +104,14 @@ WHERE m.year = '1960';
     --   LEFT JOIN Models
     --     ON brands.name = Models.brand_name
     -- WHERE Models.year > 1940;
+
+-- after:
+    SELECT b.name,
+           b.founded
+    FROM Brands AS b
+      LEFT JOIN Models AS m
+        ON b.name = m.brand_name
+    WHERE m.name IS NULL;
 
 -- 4. Modify the query to add another column to the results to show 
 -- the number of years from the year of the model *until* the brand becomes discontinued
@@ -97,10 +126,19 @@ WHERE m.year = '1960';
     --     ON m.brand_name = b.name
     -- WHERE b.discontinued NOT NULL;
 
+-- after:
+    SELECT b.name,
+           m.name,
+           m.year,
+           b.discontinued,
+           (b.discontinued - m.year) AS years_until_brand_discontinued
+    FROM Models AS m
+      LEFT JOIN brands AS b
+        ON m.brand_name = b.name
+    WHERE b.discontinued NOT NULL;
 
 
-
--- Part 3: Futher Study
+-- Part 3: Further Study
 
 -- 1. Select the **name** of any brand with more than 5 models in the database.
 
